@@ -3,14 +3,58 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Test for Deeto</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="An accessible chatbot interface powered by Deeto AI that provides customizable chat experiences" />
+  <meta name="theme-color" content="#007bff" />
+  
+  <!-- Accessibility meta tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  
+  <title>Deeto Chatbot Interface | Accessible AI Chat</title>
+  
+  <!-- Preload critical resources -->
+  <link rel="preconnect" href="https://dev-api.deeto.ai" />
+  
+  <style>
+    /* Skip to content link styles */
+    .skip-to-content {
+      position: absolute;
+      left: -9999px;
+      top: auto;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+    .skip-to-content:focus {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: auto;
+      height: auto;
+      padding: 10px 15px;
+      background: #007bff;
+      color: white;
+      font-weight: bold;
+      z-index: 10000;
+    }
+  </style>
 </head>
 
 <body>
-  <div id="root"></div>
+  <!-- Skip to content link for keyboard users -->
+  <a href="#root" class="skip-to-content">Skip to chat content</a>
+  
+  <!-- Main app container with appropriate ARIA role -->
+  <main id="root" role="main" aria-label="Deeto Chat Application"></main>
 
   <script type="module" src="/src/main.tsx"></script>
+  
+  <noscript>
+    <div style="padding: 20px; text-align: center;">
+      This application requires JavaScript to be enabled in your browser to function properly.
+    </div>
+  </noscript>
 </body>
 
 </html>
