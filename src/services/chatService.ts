@@ -1,19 +1,74 @@
 import axios from "axios";
-import { ChatSettings, SendMessageResponse } from "../types/chatTypes";
+import {
+  ChatSettings,
+  SendMessageResponse,
+  ChatbotResponse,
+} from "../types/chatTypes";
 
 const VENDOR_ID = "c91c8550-8c5b-48ae-8be5-80522fd34dcd";
 const API_BASE_URL = "https://dev-api.deeto.ai/v2";
+
+let chatbotDataCache: ChatbotResponse | null = null;
+
+/**
+ * Fetch chatbot data from the API or cache
+ */
+const fetchChatbotData = async (): Promise<ChatbotResponse> => {
+  if (chatbotDataCache) {
+    return chatbotDataCache;
+  }
+
+  try {
+    console.log("Fetching chatbot data from API");
+    const response = await axios.get<ChatbotResponse>(
+      `${API_BASE_URL}/chatbot/${VENDOR_ID}`,
+    );
+
+    if (response.data && response.data.code === 0) {
+      chatbotDataCache = response.data;
+      return response.data;
+    }
+
+    throw new Error("Invalid response format from API");
+  } catch (error) {
+    console.error("Error fetching chatbot data:", error);
+    throw error;
+  }
+};
 
 /**
  * Fetch chat configuration and initial messages
  */
 export const fetchChatConfig = async (): Promise<ChatSettings> => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/chatbot/${VENDOR_ID}`);
-    return response.data;
+    const chatbotData = await fetchChatbotData();
+
+    if (chatbotData.data && chatbotData.data.settings) {
+      return chatbotData.data.settings;
+    }
+
+    throw new Error("Invalid settings data from API");
   } catch (error) {
     console.error("Error fetching chat configuration:", error);
     throw error;
+  }
+};
+
+/**
+ * Get chatbot name from the API response
+ */
+export const getChatbotName = async (): Promise<string> => {
+  try {
+    const chatbotData = await fetchChatbotData();
+
+    if (chatbotData.data) {
+      return chatbotData.data.name || "Chatbot";
+    }
+
+    return "Chatbot";
+  } catch (error) {
+    console.error("Error fetching chatbot name:", error);
+    return "Chatbot";
   }
 };
 

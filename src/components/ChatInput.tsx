@@ -18,7 +18,7 @@ const ChatInput: React.FC = () => {
     display: "flex",
     padding: "1rem",
     borderTop: "1px solid #e9ecef",
-    backgroundColor: styles?.backgroundColor,
+    backgroundColor: "#ffffff",
   };
 
   const inputStyle = {
@@ -27,18 +27,18 @@ const ChatInput: React.FC = () => {
     borderRadius: "1.5rem",
     border: "1px solid #ced4da",
     marginRight: "0.5rem",
-    fontFamily: styles?.fontFamily,
     fontSize: "1rem",
-    color: styles?.textColor,
+    color: styles?.["--color"] || "#212529",
     backgroundColor: "#fff",
   };
 
   const buttonStyle = {
     padding: "0.75rem 1.5rem",
-    backgroundColor: styles?.primaryColor || "#007bff",
+    backgroundColor: styles?.["--background-color"] || "#007bff",
     color: "#fff",
     border: "none",
-    borderRadius: "1.5rem",
+    borderRadius: styles?.["--border-radius"] || "1.5rem",
+    boxShadow: styles?.["--box-shadow"],
     fontWeight: "bold" as const,
     cursor: state.isLoading ? "not-allowed" : "pointer",
     opacity: state.isLoading ? 0.7 : 1,
@@ -51,7 +51,9 @@ const ChatInput: React.FC = () => {
         type="text"
         value={message}
         onChange={(e) => setMessage(e.target.value)}
-        placeholder="Type your message..."
+        placeholder={
+          state.settings["placeholder-text"] || "Type your message..."
+        }
         style={inputStyle}
         disabled={state.isLoading}
       />

@@ -13,16 +13,15 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
   const isUser = message.role === "user";
   const bubbleStyle = {
     backgroundColor: isUser
-      ? styles?.userBubbleColor || "#e9ecef"
-      : styles?.assistantBubbleColor || "#f8f9fa",
-    color: styles?.textColor || "#212529",
-    fontFamily: styles?.fontFamily || "Arial, sans-serif",
-    borderRadius: "1rem",
+      ? "#e9ecef"
+      : styles?.["--background-color"] || "#f8f9fa",
+    color: styles?.["--color"] || "#212529",
+    borderRadius: styles?.["--border-radius"] || "1rem",
+    boxShadow: styles?.["--box-shadow"] || "0 1px 2px rgba(0, 0, 0, 0.1)",
     padding: "0.75rem 1rem",
     maxWidth: "75%",
     wordBreak: "break-word" as const,
     marginBottom: "0.5rem",
-    boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
     alignSelf: isUser ? "flex-end" : "flex-start",
   };
 

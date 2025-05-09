@@ -1,6 +1,21 @@
-import React, { createContext, useContext, useReducer, ReactNode } from "react";
-import { ChatMessage, ChatSettings, ChatState } from "../types/chatTypes";
-import { fetchChatConfig, sendMessage } from "../services/chatService";
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  ReactNode,
+  useEffect,
+} from "react";
+import {
+  ChatMessage,
+  ChatSettings,
+  ChatState,
+  ChatMessageWithOptions,
+} from "../types/chatTypes";
+import {
+  fetchChatConfig,
+  sendMessage,
+  getChatbotName,
+} from "../services/chatService";
 
 type Action =
   | { type: "SET_SETTINGS"; payload: ChatSettings }
@@ -12,14 +27,14 @@ const initialState: ChatState = {
   settings: {
     messages: [],
     styles: {
-      primaryColor: "#007bff",
-      secondaryColor: "#6c757d",
-      fontFamily: "Arial, sans-serif",
-      backgroundColor: "#ffffff",
-      textColor: "#212529",
-      userBubbleColor: "#e9ecef",
-      assistantBubbleColor: "#f8f9fa",
+      "--color": "black",
+      "--box-shadow": "5px 10px 18px red",
+      "--border-radius": "6px",
+      "--background-color": "red",
     },
+    contactUrl: "",
+    introOptions: [],
+    "placeholder-text": "Ask me anything",
   },
   messages: [],
   isLoading: false,
@@ -32,9 +47,6 @@ const chatReducer = (state: ChatState, action: Action): ChatState => {
       return {
         ...state,
         settings: action.payload,
-        messages: Array.isArray(action.payload.messages)
-          ? [...action.payload.messages]
-          : [],
       };
     case "ADD_MESSAGE":
       return {
@@ -60,6 +72,7 @@ interface ChatContextType {
   state: ChatState;
   initializeChat: () => Promise<void>;
   sendChatMessage: (message: string) => Promise<void>;
+  chatbotName: string;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -70,14 +83,46 @@ interface ChatProviderProps {
 
 export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(chatReducer, initialState);
+  const [chatbotName, setChatbotName] = React.useState<string>("Chatbot");
+
+  useEffect(() => {
+    initializeChat();
+  }, []);
+
+  const processInitialMessages = (
+    messages: ChatMessageWithOptions[],
+  ): ChatMessage[] => {
+    if (!Array.isArray(messages)) return [];
+
+    return messages.map((msg, index) => ({
+      id: `initial-${index}`,
+      content: msg.content.replace("{chatbot.name}", chatbotName),
+      role: msg.role,
+      createdAt: new Date().toISOString(),
+    }));
+  };
 
   const initializeChat = async () => {
     try {
       dispatch({ type: "SET_LOADING", payload: true });
+
+      const name = await getChatbotName();
+      setChatbotName(name);
+
       const config = await fetchChatConfig();
+
       dispatch({ type: "SET_SETTINGS", payload: config });
+
+      if (config.messages && Array.isArray(config.messages)) {
+        const initialMessages = processInitialMessages(config.messages);
+        initialMessages.forEach((msg) => {
+          dispatch({ type: "ADD_MESSAGE", payload: msg });
+        });
+      }
+
       dispatch({ type: "SET_ERROR", payload: null });
-    } catch {
+    } catch (error) {
+      console.error("Error initializing chat:", error);
       dispatch({
         type: "SET_ERROR",
         payload: "Failed to initialize chat. Please try again.",
@@ -119,6 +164,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
         state,
         initializeChat,
         sendChatMessage,
+        chatbotName,
       }}
     >
       {children}

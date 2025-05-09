@@ -1,9 +1,10 @@
 import React, { useEffect, useRef } from "react";
 import { useChatContext } from "../context/ChatContext";
 import ChatBubble from "./ChatBubble";
+import { ChatMessage } from "../types/chatTypes";
 
 const ChatMessageList: React.FC = () => {
-  const { state } = useChatContext();
+  const { state, chatbotName } = useChatContext();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -19,7 +20,54 @@ const ChatMessageList: React.FC = () => {
     padding: "1rem",
     overflowY: "auto" as const,
     height: "calc(100vh - 150px)",
-    backgroundColor: state.settings?.styles?.backgroundColor || "#ffffff",
+    backgroundColor: "#ffffff",
+  };
+
+  const handleOptionClick = (option: string) => {
+    const { sendChatMessage } = useChatContext();
+    sendChatMessage(option);
+  };
+
+  const renderOptions = (message: ChatMessage) => {
+    const messageWithOptions = state.settings.messages.find(
+      (msg) =>
+        msg.role === message.role &&
+        msg.content === message.content.replace(chatbotName, "{chatbot.name}"),
+    );
+
+    if (!messageWithOptions?.options?.length) return null;
+
+    const optionContainerStyle = {
+      display: "flex",
+      flexDirection: "column" as const,
+      gap: "0.5rem",
+      marginTop: "0.5rem",
+    };
+
+    const optionButtonStyle = {
+      padding: "0.5rem 1rem",
+      backgroundColor: state.settings.styles["--background-color"] || "#007bff",
+      color: "#fff",
+      border: "none",
+      borderRadius: state.settings.styles["--border-radius"] || "0.5rem",
+      boxShadow: state.settings.styles["--box-shadow"],
+      cursor: "pointer",
+      textAlign: "left" as const,
+    };
+
+    return (
+      <div style={optionContainerStyle}>
+        {messageWithOptions.options.map((option, index) => (
+          <button
+            key={index}
+            onClick={() => handleOptionClick(option)}
+            style={optionButtonStyle}
+          >
+            {option}
+          </button>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -36,7 +84,10 @@ const ChatMessageList: React.FC = () => {
         </div>
       ) : (
         state.messages.map((message) => (
-          <ChatBubble key={message.id} message={message} />
+          <div key={message.id}>
+            <ChatBubble message={message} />
+            {renderOptions(message)}
+          </div>
         ))
       )}
       <div ref={messagesEndRef} />

@@ -1,15 +1,11 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useChatContext } from "../context/ChatContext";
 import ChatMessageList from "./ChatMessageList";
 import ChatInput from "./ChatInput";
 
 const ChatContainer: React.FC = () => {
-  const { state, initializeChat } = useChatContext();
+  const { state, initializeChat, chatbotName } = useChatContext();
   const { styles } = state.settings;
-
-  useEffect(() => {
-    initializeChat();
-  }, []);
 
   const containerStyle = {
     display: "flex",
@@ -17,10 +13,10 @@ const ChatContainer: React.FC = () => {
     height: "100vh",
     maxWidth: "800px",
     margin: "0 auto",
-    backgroundColor: styles?.backgroundColor || "#ffffff",
-    color: styles?.textColor || "#212529",
-    fontFamily: styles?.fontFamily || "Arial, sans-serif",
-    boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
+    backgroundColor: "#ffffff",
+    color: styles?.["--color"] || "#212529",
+    boxShadow: styles?.["--box-shadow"] || "0 0 10px rgba(0, 0, 0, 0.1)",
+    borderRadius: styles?.["--border-radius"] || "0px",
   };
 
   if (state.error) {
@@ -38,7 +34,7 @@ const ChatContainer: React.FC = () => {
           <button
             onClick={() => initializeChat()}
             style={{
-              backgroundColor: styles?.primaryColor || "#007bff",
+              backgroundColor: styles?.["--background-color"] || "#007bff",
               color: "#fff",
               border: "none",
               borderRadius: "0.25rem",
@@ -74,13 +70,25 @@ const ChatContainer: React.FC = () => {
       <header
         style={{
           padding: "1rem",
-          backgroundColor: styles?.primaryColor || "#007bff",
+          backgroundColor: styles?.["--background-color"] || "#007bff",
           color: "#fff",
           textAlign: "center",
           borderBottom: "1px solid #dee2e6",
         }}
       >
-        <h2 style={{ margin: 0 }}>Chatbot</h2>
+        <h2 style={{ margin: 0 }}>{chatbotName}</h2>
+        {state.settings.contactUrl && (
+          <div style={{ marginTop: "0.5rem", fontSize: "0.8rem" }}>
+            <a
+              href={state.settings.contactUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "#fff", textDecoration: "underline" }}
+            >
+              Contact Us
+            </a>
+          </div>
+        )}
       </header>
 
       <ChatMessageList />

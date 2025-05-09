@@ -5,19 +5,43 @@ export interface ChatMessage {
   createdAt: string;
 }
 
+export interface ChatOption {
+  content: string;
+}
+
+export interface ChatMessageWithOptions
+  extends Omit<ChatMessage, "id" | "createdAt"> {
+  options?: string[];
+}
+
 export interface ChatStyles {
-  primaryColor: string;
-  secondaryColor: string;
-  fontFamily: string;
-  backgroundColor: string;
-  textColor: string;
-  userBubbleColor: string;
-  assistantBubbleColor: string;
+  "--color"?: string;
+  "--box-shadow"?: string;
+  "--border-radius"?: string;
+  "--background-color"?: string;
+  [key: string]: string | undefined;
 }
 
 export interface ChatSettings {
-  messages: ChatMessage[];
   styles: ChatStyles;
+  messages: ChatMessageWithOptions[];
+  contactUrl?: string;
+  introOptions?: string[];
+  "placeholder-text"?: string;
+}
+
+export interface ChatbotResponse {
+  code: number;
+  message: string;
+  data: {
+    chatbotId: string;
+    vendorId: string;
+    name: string;
+    description: string | null;
+    settings: ChatSettings;
+    createdAt: string;
+    updatedAt: string;
+  };
 }
 
 export interface ChatState {
