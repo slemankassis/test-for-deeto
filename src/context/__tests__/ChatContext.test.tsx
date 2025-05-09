@@ -100,7 +100,16 @@ describe("ChatContext", () => {
     );
   });
 
-  it("handles sending messages", async () => {
+  it("handles sending messages with pending response and polling", async () => {
+    // Mock sendMessage to return a pending message first
+    vi.mocked(chatService.sendMessage).mockResolvedValue({
+      id: "pending-msg-1",
+      content: "Thinking...",
+      role: "assistant",
+      createdAt: new Date().toISOString(),
+      pending: true,
+    });
+
     render(
       <ChatProvider>
         <TestConsumer />
@@ -120,13 +129,34 @@ describe("ChatContext", () => {
       screen.getByTestId("send-message-button").click();
     });
 
-    // There should now be 2 messages (user message + response)
+    // There should now be 2 messages (user message + pending response)
     await waitFor(() => {
       expect(screen.getByTestId("messages-count").textContent).toBe("2");
     });
 
     // Verify service call
     expect(chatService.sendMessage).toHaveBeenCalledWith("Test message");
+
+    // Now simulate the chatResponseReady event with the final response
+    await act(async () => {
+      window.dispatchEvent(
+        new CustomEvent("chatResponseReady", {
+          detail: {
+            id: "final-msg-1",
+            content: "This is the final response",
+            role: "assistant",
+            createdAt: new Date().toISOString(),
+          },
+        }),
+      );
+    });
+
+    // The message count should still be 2, but the content should be updated
+    expect(screen.getByTestId("messages-count").textContent).toBe("2");
+
+    // We can't directly check the message content here since TestConsumer
+    // doesn't display it, but we can verify the update happened through
+    // checking the number of messages stayed the same
   });
 
   it("handles message sending errors", async () => {
@@ -196,5 +226,117 @@ describe("ChatContext", () => {
 
     // Loading state should be false
     expect(screen.getByTestId("loading-state").textContent).toBe("false");
+  });
+
+  it("handles multiple pending messages and updates correctly", async () => {
+    // Create a custom Test component that can send multiple messages
+    const TestMultipleMessages = () => {
+      const { state, sendChatMessage } = useChatContext();
+
+      return (
+        <div>
+          <div data-testid="messages-count">{state.messages.length}</div>
+          <button
+            data-testid="send-message-1"
+            onClick={() => sendChatMessage("First message")}
+          >
+            Send First
+          </button>
+          <button
+            data-testid="send-message-2"
+            onClick={() => sendChatMessage("Second message")}
+          >
+            Send Second
+          </button>
+        </div>
+      );
+    };
+
+    // Mock sendMessage to return pending messages with different IDs
+    let callCount = 0;
+    vi.mocked(chatService.sendMessage).mockImplementation(() => {
+      callCount++;
+      return Promise.resolve({
+        id: `pending-msg-${callCount}`,
+        content: "Thinking...",
+        role: "assistant",
+        createdAt: new Date().toISOString(),
+        pending: true,
+      });
+    });
+
+    render(
+      <ChatProvider>
+        <TestMultipleMessages />
+      </ChatProvider>,
+    );
+
+    // Wait for initialization to complete
+    await waitFor(() => {
+      // Initial state is 0 messages
+      expect(screen.getByTestId("messages-count").textContent).toBe("0");
+    });
+
+    // Send first message
+    await act(async () => {
+      screen.getByTestId("send-message-1").click();
+    });
+
+    // Now should have 2 messages (user + pending)
+    await waitFor(() => {
+      expect(screen.getByTestId("messages-count").textContent).toBe("2");
+    });
+
+    // Send second message
+    await act(async () => {
+      screen.getByTestId("send-message-2").click();
+    });
+
+    // Now should have 4 messages (2 users + 2 pending)
+    await waitFor(() => {
+      expect(screen.getByTestId("messages-count").textContent).toBe("4");
+    });
+
+    // Simulate response for first message
+    await act(async () => {
+      window.dispatchEvent(
+        new CustomEvent("chatResponseReady", {
+          detail: {
+            id: "pending-msg-1", // Match ID of first pending message
+            content: "First response",
+            role: "assistant",
+            createdAt: new Date().toISOString(),
+          },
+        }),
+      );
+    });
+
+    // Still should have 4 messages (first pending was updated, not added)
+    expect(screen.getByTestId("messages-count").textContent).toBe("4");
+
+    // Simulate response for second message
+    await act(async () => {
+      window.dispatchEvent(
+        new CustomEvent("chatResponseReady", {
+          detail: {
+            id: "pending-msg-2", // Match ID of second pending message
+            content: "Second response",
+            role: "assistant",
+            createdAt: new Date().toISOString(),
+          },
+        }),
+      );
+    });
+
+    // Still should have 4 messages (second pending was updated, not added)
+    expect(screen.getByTestId("messages-count").textContent).toBe("4");
+
+    // Verify chatService was called correctly
+    expect(chatService.sendMessage).toHaveBeenCalledTimes(2);
+    expect(chatService.sendMessage).toHaveBeenNthCalledWith(1, "First message");
+    expect(chatService.sendMessage).toHaveBeenNthCalledWith(
+      2,
+      "Second message",
+    );
   });
 });

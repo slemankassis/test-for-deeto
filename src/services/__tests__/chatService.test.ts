@@ -97,37 +97,296 @@ describe("chatService", () => {
   });
 
   describe("Send Message", () => {
-    it("should properly format and send messages", async () => {
-      // Mock successful response
+    it("should return a pending message and start polling", async () => {
+      // Reset any previous mock implementations
+      mockGet.mockReset();
+      mockPost.mockReset();
+
+      // Mock successful POST response with conversationId
       mockPost.mockResolvedValueOnce({
         data: {
+          code: 0,
           data: {
-            messages: [
-              { role: "user", content: "Hello" },
-              { role: "assistant", content: "How can I help?", id: "msg-123" },
-            ],
+            conversationId: "conv-123",
           },
         },
       });
 
+      // Mock successful GET response for polling - do this BEFORE calling sendMessage
+      mockGet.mockImplementationOnce(() =>
+        Promise.resolve({
+          data: {
+            code: 0,
+            data: {
+              pendingResponse: false,
+              messages: [
+                { role: "user", content: "Hello" },
+                {
+                  role: "assistant",
+                  content: "How can I help?",
+                  id: "msg-123",
+                },
+              ],
+            },
+          },
+        }),
+      );
+
+      // Create a spy for the CustomEvent dispatch
+      const dispatchEventSpy = vi.spyOn(window, "dispatchEvent");
+
+      // Intercept setTimeout to avoid waiting in tests
+      vi.useFakeTimers();
+
       const result = await sendMessage("Hello");
 
+      // Check that initial response is a pending message
       expect(result).toEqual({
-        id: "msg-123",
-        content: "How can I help?",
+        id: expect.any(String),
+        content: "Thinking...",
         role: "assistant",
         createdAt: expect.any(String),
+        pending: true,
       });
 
+      // Verify the POST call used the async flag
       expect(mockPost).toHaveBeenCalledWith(
         expect.stringContaining("/chat"),
         {
-          async: false,
+          async: true,
           message: "Hello",
           vendorId: expect.any(String),
         },
         expect.objectContaining({ timeout: 15000 }),
       );
+
+      // Fast-forward timers to trigger polling
+      await vi.runAllTimersAsync();
+
+      // Check that dispatchEvent was called
+      expect(dispatchEventSpy).toHaveBeenCalled();
+
+      // Get the actual event that was dispatched
+      const eventArg = dispatchEventSpy.mock.calls[0][0] as CustomEvent;
+      // Verify it's a CustomEvent with type chatResponseReady
+      expect(eventArg).toBeInstanceOf(CustomEvent);
+      expect(eventArg.type).toBe("chatResponseReady");
+
+      // Check if we got the expected content in the event detail
+      expect(eventArg.detail).toBeDefined();
+      if (eventArg.detail) {
+        expect(eventArg.detail.id).toBe("msg-123");
+        expect(eventArg.detail.content).toBe("How can I help?");
+        expect(eventArg.detail.role).toBe("assistant");
+      }
+
+      // Cleanup
+      vi.useRealTimers();
+      dispatchEventSpy.mockRestore();
+    });
+
+    it("should handle polling that requires multiple attempts", async () => {
+      // Reset mocks
+      mockGet.mockReset();
+      mockPost.mockReset();
+
+      // Mock successful POST response
+      mockPost.mockResolvedValueOnce({
+        data: {
+          code: 0,
+          data: {
+            conversationId: "conv-456",
+          },
+        },
+      });
+
+      // Set up GET mock implementation to handle multiple calls
+      // This approach uses a counter to return different responses for each call
+      let callCount = 0;
+      mockGet.mockImplementation(() => {
+        callCount++;
+
+        if (callCount === 1 || callCount === 2) {
+          // First and second calls return pending=true
+          return Promise.resolve({
+            data: {
+              code: 0,
+              data: {
+                pendingResponse: true,
+                messages: [],
+              },
+            },
+          });
+        } else if (callCount === 3) {
+          // Third call returns the final response
+          return Promise.resolve({
+            data: {
+              code: 0,
+              data: {
+                pendingResponse: false,
+                messages: [
+                  { role: "user", content: "Complex query" },
+                  {
+                    role: "assistant",
+                    content: "Here's my detailed answer",
+                    id: "msg-456",
+                  },
+                ],
+              },
+            },
+          });
+        } else {
+          // Should not get here in this test
+          return Promise.reject(new Error("Unexpected call to mockGet"));
+        }
+      });
+
+      const dispatchEventSpy = vi.spyOn(window, "dispatchEvent");
+      vi.useFakeTimers();
+
+      // Start message sending process
+      const result = await sendMessage("Complex query");
+      expect(result.pending).toBe(true);
+
+      // Fast-forward through the polling intervals
+      await vi.runAllTimersAsync(); // First poll (pending)
+      await vi.runAllTimersAsync(); // Second poll (pending)
+      await vi.runAllTimersAsync(); // Third poll (complete)
+
+      // Verify GET was called multiple times for polling
+      expect(mockGet).toHaveBeenCalledTimes(3);
+
+      // Verify the final event was dispatched
+      expect(dispatchEventSpy).toHaveBeenCalled();
+
+      // Get the actual event that was dispatched
+      const eventArg = dispatchEventSpy.mock.calls[0][0] as CustomEvent;
+      expect(eventArg).toBeInstanceOf(CustomEvent);
+      expect(eventArg.type).toBe("chatResponseReady");
+
+      // Check the content of the dispatched event
+      expect(eventArg.detail).toBeDefined();
+      if (eventArg.detail) {
+        expect(eventArg.detail.id).toBe("msg-456");
+        expect(eventArg.detail.content).toBe("Here's my detailed answer");
+        expect(eventArg.detail.role).toBe("assistant");
+      }
+
+      // Cleanup
+      vi.useRealTimers();
+      dispatchEventSpy.mockRestore();
+    });
+
+    it("should handle polling timeout and return fallback message", async () => {
+      // Reset mocks
+      mockGet.mockReset();
+      mockPost.mockReset();
+
+      // Mock successful POST response
+      mockPost.mockResolvedValueOnce({
+        data: {
+          code: 0,
+          data: {
+            conversationId: "conv-timeout",
+          },
+        },
+      });
+
+      const dispatchEventSpy = vi.spyOn(window, "dispatchEvent");
+      vi.useFakeTimers();
+
+      // Set up a mock that will always return pendingResponse=true
+      mockGet.mockImplementation(() => {
+        return Promise.resolve({
+          data: {
+            code: 0,
+            data: {
+              pendingResponse: true,
+              messages: [],
+            },
+          },
+        });
+      });
+
+      // Start message sending
+      const result = await sendMessage("Timeout test");
+      expect(result.pending).toBe(true);
+
+      // Fast-forward through all polling attempts (should exceed MAX_POLLING_ATTEMPTS)
+      for (let i = 0; i < 31; i++) {
+        await vi.runAllTimersAsync();
+      }
+
+      // Verify that dispatchEvent was called
+      expect(dispatchEventSpy).toHaveBeenCalled();
+
+      // Get the actual event that was dispatched
+      const eventArg = dispatchEventSpy.mock.calls[0][0] as CustomEvent;
+      expect(eventArg).toBeInstanceOf(CustomEvent);
+      expect(eventArg.type).toBe("chatResponseReady");
+
+      // Check the content of the dispatched event
+      expect(eventArg.detail).toBeDefined();
+      if (eventArg.detail) {
+        expect(eventArg.detail.content).toBe(
+          "Response took too long. Please try again.",
+        );
+        expect(eventArg.detail.role).toBe("assistant");
+      }
+
+      // Cleanup
+      vi.useRealTimers();
+      dispatchEventSpy.mockRestore();
+    });
+
+    it("should handle polling errors gracefully", async () => {
+      // Reset mocks
+      mockGet.mockReset();
+      mockPost.mockReset();
+
+      // Mock successful POST response
+      mockPost.mockResolvedValueOnce({
+        data: {
+          code: 0,
+          data: {
+            conversationId: "conv-error",
+          },
+        },
+      });
+
+      const dispatchEventSpy = vi.spyOn(window, "dispatchEvent");
+      vi.useFakeTimers();
+
+      // Start message sending
+      const result = await sendMessage("Error test");
+      expect(result.pending).toBe(true);
+
+      // Mock polling to fail with an error
+      mockGet.mockRejectedValueOnce(new Error("Network error during polling"));
+
+      // Fast-forward through the polling attempt
+      await vi.runAllTimersAsync();
+
+      // Verify that dispatchEvent was called
+      expect(dispatchEventSpy).toHaveBeenCalled();
+
+      // Get the actual event that was dispatched
+      const eventArg = dispatchEventSpy.mock.calls[0][0] as CustomEvent;
+      expect(eventArg).toBeInstanceOf(CustomEvent);
+      expect(eventArg.type).toBe("chatResponseReady");
+
+      // Check the content of the dispatched event
+      expect(eventArg.detail).toBeDefined();
+      if (eventArg.detail) {
+        expect(eventArg.detail.content).toBe(
+          "Error while waiting for response. Please try again.",
+        );
+        expect(eventArg.detail.role).toBe("assistant");
+      }
+
+      // Cleanup
+      vi.useRealTimers();
+      dispatchEventSpy.mockRestore();
     });
 
     it("should handle API errors gracefully", async () => {
