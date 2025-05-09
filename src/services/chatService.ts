@@ -5,7 +5,7 @@ import {
   ChatbotResponse,
 } from "../types/chatTypes";
 
-const VENDOR_ID = "c91c8550-8c5b-48ae-8be5-80522fd34dcd";
+const VENDOR_ID = import.meta.env.VITE_VENDOR_ID;
 const API_BASE_URL = "https://dev-api.deeto.ai/v2";
 
 let chatbotDataCache: ChatbotResponse | null = null;
