@@ -254,3 +254,12 @@ Ensure your production environment has the required environment variables set:
 ---
 
 This project connects to the Deeto API at `https://dev-api.deeto.ai/v2` for chatbot configuration and message handling.
+# TODO List
+
+- [ ] Add Cypress testing for end-to-end testing
+- [ ] Fix API polling behavior: Currently, polling is working but it shows the complete message in the last request instead of streaming partial updates. The API should be modified to support incremental message updates during polling.
+- [ ] Add support for file attachments
+- [ ] Implement rate limiting for message sending
+- [ ] Create admin dashboard for monitoring conversation analytics
+- [ ] Add multi-language support
+- [ ] Implement message search functionality
