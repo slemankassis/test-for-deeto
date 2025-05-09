@@ -2,6 +2,8 @@
 
 A React-based chatbot application built as a test job for Deeto. This application implements a customizable chatbot interface that communicates with the Deeto API to provide interactive chat experiences with dynamic styling and configuration options.
 
+![](./images-readme/image.png)
+
 ## Features
 
 - **Real-time Messaging**: Send and receive messages through the Deeto Chat API
@@ -254,12 +256,19 @@ Ensure your production environment has the required environment variables set:
 ---
 
 This project connects to the Deeto API at `https://dev-api.deeto.ai/v2` for chatbot configuration and message handling.
+
 # TODO List
 
 - [ ] Add Cypress testing for end-to-end testing
-- [ ] Fix API polling behavior: Currently, polling is working but it shows the complete message in the last request instead of streaming partial updates. The API should be modified to support incremental message updates during polling.
 - [ ] Add support for file attachments
 - [ ] Implement rate limiting for message sending
 - [ ] Create admin dashboard for monitoring conversation analytics
 - [ ] Add multi-language support
 - [ ] Implement message search functionality
+- [ ] Fix API polling behavior: Currently, polling is working but it shows the complete message in the last request instead of streaming partial updates. The API should be modified to support incremental message updates during polling (See images)
+
+![](./images-readme/1.png)
+![](./images-readme/2.png)
+![](./images-readme/3.png)
+![](./images-readme/4.png)
+![](./images-readme/5.png)
