@@ -4,7 +4,7 @@ import ChatBubble from "./ChatBubble";
 import { ChatMessage } from "../types/chatTypes";
 
 const ChatMessageList: React.FC = () => {
-  const { state, chatbotName } = useChatContext();
+  const { state, sendChatMessage } = useChatContext();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -24,18 +24,27 @@ const ChatMessageList: React.FC = () => {
   };
 
   const handleOptionClick = (option: string) => {
-    const { sendChatMessage } = useChatContext();
     sendChatMessage(option);
   };
 
   const renderOptions = (message: ChatMessage) => {
-    const messageWithOptions = state.settings.messages.find(
-      (msg) =>
-        msg.role === message.role &&
-        msg.content === message.content.replace(chatbotName, "{chatbot.name}"),
-    );
+    if (!message.id.startsWith("initial-")) {
+      return null;
+    }
 
-    if (!messageWithOptions?.options?.length) return null;
+    const index = parseInt(message.id.split("-")[1]);
+
+    const originalMessage = state.settings.messages[index];
+
+    if (!originalMessage?.options?.length) {
+      return null;
+    }
+
+    console.log(
+      "Rendering options for message:",
+      message.id,
+      originalMessage.options,
+    );
 
     const optionContainerStyle = {
       display: "flex",
@@ -57,9 +66,9 @@ const ChatMessageList: React.FC = () => {
 
     return (
       <div style={optionContainerStyle}>
-        {messageWithOptions.options.map((option, index) => (
+        {originalMessage.options.map((option, i) => (
           <button
-            key={index}
+            key={i}
             onClick={() => handleOptionClick(option)}
             style={optionButtonStyle}
           >
