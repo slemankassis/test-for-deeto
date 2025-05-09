@@ -20,6 +20,7 @@ import {
 type Action =
   | { type: "SET_SETTINGS"; payload: ChatSettings }
   | { type: "ADD_MESSAGE"; payload: ChatMessage }
+  | { type: "SET_MESSAGES"; payload: ChatMessage[] }
   | { type: "SET_LOADING"; payload: boolean }
   | { type: "SET_ERROR"; payload: string | null };
 
@@ -53,6 +54,11 @@ const chatReducer = (state: ChatState, action: Action): ChatState => {
         ...state,
         messages: [...state.messages, action.payload],
       };
+    case "SET_MESSAGES":
+      return {
+        ...state,
+        messages: action.payload,
+      };
     case "SET_LOADING":
       return {
         ...state,
@@ -84,10 +90,14 @@ interface ChatProviderProps {
 export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(chatReducer, initialState);
   const [chatbotName, setChatbotName] = React.useState<string>("Chatbot");
+  const [isInitializing, setIsInitializing] = React.useState(false);
+  const [hasInitialized, setHasInitialized] = React.useState(false);
 
   useEffect(() => {
-    initializeChat();
-  }, []);
+    if (!hasInitialized && !isInitializing) {
+      initializeChat();
+    }
+  }, [hasInitialized, isInitializing]);
 
   const processInitialMessages = (
     messages: ChatMessageWithOptions[],
@@ -103,7 +113,16 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   };
 
   const initializeChat = async () => {
+    if (isInitializing || hasInitialized) {
+      console.log("Chat already initialized or initializing, skipping");
+      return;
+    }
+
+    setIsInitializing(true);
+    console.log("Initializing chat");
+
     try {
+      dispatch({ type: "SET_MESSAGES", payload: [] });
       dispatch({ type: "SET_LOADING", payload: true });
 
       const name = await getChatbotName();
@@ -115,12 +134,11 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
 
       if (config.messages && Array.isArray(config.messages)) {
         const initialMessages = processInitialMessages(config.messages);
-        initialMessages.forEach((msg) => {
-          dispatch({ type: "ADD_MESSAGE", payload: msg });
-        });
+        dispatch({ type: "SET_MESSAGES", payload: initialMessages });
       }
 
       dispatch({ type: "SET_ERROR", payload: null });
+      setHasInitialized(true);
     } catch (error) {
       console.error("Error initializing chat:", error);
       dispatch({
@@ -128,6 +146,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
         payload: "Failed to initialize chat. Please try again.",
       });
     } finally {
+      setIsInitializing(false);
       dispatch({ type: "SET_LOADING", payload: false });
     }
   };
