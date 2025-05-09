@@ -1,0 +1,51 @@
+# See https://help.github.com/ignore-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+
+# testing
+/coverage
+
+# production
+/build
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.e2e
+cypress.env.json
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# cypress
+cypress/videos
+cypress/screenshots
+coverage
+
+.idea
+.env
+coverage
+coverage-merge
+coverage-report
+
+react-localize-redux
+/.nyc_output
+
+*.tfstate
+*.backup
+
+**.terraform
+.eslintcache
+
+cloudflare.config.yml
+package-lock.json
+.npmrc
+
+scripts/to-translate.json
+
+.vscode/
