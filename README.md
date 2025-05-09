@@ -140,6 +140,85 @@ For continuous testing during development:
 yarn test:watch
 ```
 
+## Accessibility
+
+This project prioritizes digital accessibility to ensure the chat interface is usable by people of all abilities. We've implemented numerous accessibility features following WCAG 2.1 AA standards to create an inclusive user experience.
+
+### Accessibility Features
+
+- **ARIA Attributes**: Comprehensive use of ARIA roles, states, and properties throughout the application to improve screen reader compatibility:
+
+  - `aria-live` regions for dynamic content updates
+  - `aria-label` and `aria-labelledby` for descriptive elements
+  - `aria-busy` for loading states
+  - Proper role attributes (`region`, `application`, `log`, etc.)
+
+- **Keyboard Navigation**:
+
+  - Full keyboard accessibility for all interactive elements
+  - Arrow key navigation for message options
+  - Tab order follows logical reading sequence
+  - Focus indicators for all interactive elements
+  - Skip navigation link to jump directly to chat input
+
+- **Focus Management**:
+
+  - Focus returns to input field after sending a message
+  - Preserved focus state during updates
+  - Visual focus indicators with high contrast
+  - Proper focus trapping in modal contexts
+
+- **Screen Reader Support**:
+
+  - Descriptive announcements for status changes
+  - Hidden context information for screen readers (using `sr-only`)
+  - Semantic HTML structure
+  - Proper heading hierarchy
+
+- **Semantic HTML**:
+
+  - Using appropriate elements (`article`, `section`, `header`, etc.)
+  - Proper list structures for message sequences
+  - Semantic forms with associated labels
+
+- **Color and Contrast**:
+
+  - UI design respects minimum contrast ratios
+  - Information not conveyed by color alone
+  - Focus states have sufficient contrast
+
+- **Responsive Design**:
+  - Accessible on various screen sizes and orientations
+  - Text scales properly without breaking layouts
+
+### Keyboard Shortcuts
+
+The application includes keyboard shortcuts to improve efficiency:
+
+- `Ctrl + /`: Focus on the chat input field
+- `Tab`: Navigate through interactive elements
+- `Enter` or `Space`: Activate buttons and links
+- `Up/Down Arrows`: Navigate between message options
+
+### Accessibility Standards
+
+This project aims to conform to WCAG 2.1 AA standards. Key guidelines followed include:
+
+- Perceivable: Content is presentable to users in ways they can perceive
+- Operable: User interface components are operable by all users
+- Understandable: Information and operation are understandable
+- Robust: Content is compatible with current and future assistive technologies
+
+### Future Accessibility Improvements
+
+Planned accessibility enhancements include:
+
+- Implementing full internationalization (i18n) support
+- Enhancing high contrast mode
+- Adding voice input capabilities
+- Conducting formal accessibility audits
+- Expanding keyboard shortcuts
+
 ## Build & Deployment
 
 ### Building for Production

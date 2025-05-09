@@ -1,11 +1,8 @@
-// Simple test script for chatService
 console.log("Running test for chatService.ts");
 
-// Import required modules
 const axios = require("axios");
 const assert = require("assert");
 
-// Mock the axios module
 jest = {
   fn: () => {
     const mockFn = function (...args) {
@@ -24,10 +21,8 @@ jest = {
   },
 };
 
-// Mock environment variables
 process.env.VITE_VENDOR_ID = "test-vendor-id";
 
-// Simple test runner
 function describe(name, fn) {
   console.log(`\n🧪 Test Suite: ${name}`);
   fn();
@@ -54,7 +49,6 @@ function expect(actual) {
   };
 }
 
-// Simple test for environment variable usage
 describe("ChatService", () => {
   it("should use environment variables correctly", () => {
     expect(process.env.VITE_VENDOR_ID).toBe("test-vendor-id");

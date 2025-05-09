@@ -5,7 +5,6 @@ import ChatBubble from "../ChatBubble";
 import { ChatMessage } from "../../types/chatTypes";
 import { useChatContext } from "../../context/ChatContext";
 
-// Mock the ChatContext
 vi.mock("../../context/ChatContext", () => ({
   useChatContext: vi.fn(),
 }));
@@ -14,7 +13,6 @@ describe("ChatBubble", () => {
   const mockUseChatContext = useChatContext as jest.Mock;
 
   beforeEach(() => {
-    // Setup default mock
     mockUseChatContext.mockReturnValue({
       state: {
         settings: {

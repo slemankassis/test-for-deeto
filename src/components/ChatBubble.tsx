@@ -7,10 +7,11 @@ interface ChatBubbleProps {
 }
 
 const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
-  const { state } = useChatContext();
+  const { state, chatbotName } = useChatContext();
   const { styles } = state.settings;
 
   const isUser = message.role === "user";
+  const senderName = isUser ? "You" : chatbotName || "Assistant";
 
   const formatTimestamp = (timestamp: string) => {
     try {
@@ -24,8 +25,19 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
     }
   };
 
+  const formattedTime = formatTimestamp(message.createdAt);
+
   return (
-    <div className="flex flex-col w-full">
+    <article 
+      className="flex flex-col w-full"
+      aria-label={`${senderName} message sent at ${formattedTime}`}
+      role="log"
+    >
+      <header className="sr-only">
+        <h3>{senderName}</h3>
+        <time dateTime={message.createdAt}>{formattedTime}</time>
+      </header>
+      
       <div
         className={`p-3 max-w-3/4 break-words mb-2 ${isUser ? "self-end" : "self-start"}`}
         style={{
@@ -36,15 +48,18 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
           borderRadius: styles?.["--border-radius"] || "1rem",
           boxShadow: styles?.["--box-shadow"] || "0 1px 2px rgba(0, 0, 0, 0.1)",
         }}
+        aria-labelledby={`message-content-${message.id}`}
       >
-        <div>{message.content}</div>
+        <p id={`message-content-${message.id}`}>{message.content}</p>
       </div>
-      <div
+      
+      <footer
         className={`text-xs text-gray-500 mt-1 ${isUser ? "text-right" : "text-left"}`}
+        aria-hidden="true"
       >
-        {formatTimestamp(message.createdAt)}
-      </div>
-    </div>
+        <time dateTime={message.createdAt}>{formattedTime}</time>
+      </footer>
+    </article>
   );
 };
 
