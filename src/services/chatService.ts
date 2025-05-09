@@ -7,7 +7,7 @@ import {
 
 const VENDOR_ID =
   import.meta.env.VITE_VENDOR_ID || "c91c8550-8c5b-48ae-8be5-80522fd34dcd";
-const API_BASE_URL = "https://dev-api.deeto.ai/v2";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const ENDPOINTS = {
   chatbot: `${API_BASE_URL}/chatbot/${VENDOR_ID}`,
