@@ -1,5 +1,5 @@
 import React from "react";
-import { ChatMessage } from "../types/chatTypes";
+import { ChatMessage, SendMessageResponse } from "../types/chatTypes";
 import { useChatContext } from "../context/ChatContext";
 
 interface ChatBubbleProps {
@@ -12,6 +12,8 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
 
   const isUser = message.role === "user";
   const senderName = isUser ? "You" : chatbotName || "Assistant";
+  const isPending =
+    !isUser && (message as SendMessageResponse).pending === true;
 
   const formatTimestamp = (timestamp: string) => {
     try {
@@ -28,7 +30,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
   const formattedTime = formatTimestamp(message.createdAt);
 
   return (
-    <article 
+    <article
       className="flex flex-col w-full"
       aria-label={`${senderName} message sent at ${formattedTime}`}
       role="log"
@@ -37,7 +39,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
         <h3>{senderName}</h3>
         <time dateTime={message.createdAt}>{formattedTime}</time>
       </header>
-      
+
       <div
         className={`p-3 max-w-3/4 break-words mb-2 ${isUser ? "self-end" : "self-start"}`}
         style={{
@@ -50,9 +52,29 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
         }}
         aria-labelledby={`message-content-${message.id}`}
       >
-        <p id={`message-content-${message.id}`}>{message.content}</p>
+        <div id={`message-content-${message.id}`}>
+          {isPending ? (
+            <div aria-live="polite" role="status">
+              <p>{message.content}</p>
+              <div className="flex mt-2 space-x-1">
+                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
+                <div
+                  className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                  style={{ animationDelay: "0.2s" }}
+                ></div>
+                <div
+                  className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                  style={{ animationDelay: "0.4s" }}
+                ></div>
+              </div>
+              <span className="sr-only">Message is being processed</span>
+            </div>
+          ) : (
+            <p>{message.content}</p>
+          )}
+        </div>
       </div>
-      
+
       <footer
         className={`text-xs text-gray-500 mt-1 ${isUser ? "text-right" : "text-left"}`}
         aria-hidden="true"

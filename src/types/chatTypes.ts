@@ -51,10 +51,6 @@ export interface ChatState {
   error: string | null;
 }
 
-export interface SendMessageResponse {
-  id: string;
-  content: string;
-  role: "assistant";
-  createdAt: string;
+export interface SendMessageResponse extends ChatMessage {
   pending?: boolean;
 }

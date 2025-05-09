@@ -10,6 +10,7 @@ import {
   ChatSettings,
   ChatState,
   ChatMessageWithOptions,
+  SendMessageResponse,
 } from "../types/chatTypes";
 import {
   fetchChatConfig,
@@ -20,6 +21,10 @@ import {
 type Action =
   | { type: "SET_SETTINGS"; payload: ChatSettings }
   | { type: "ADD_MESSAGE"; payload: ChatMessage }
+  | {
+      type: "UPDATE_MESSAGE";
+      payload: { id: string; updatedMessage: ChatMessage };
+    }
   | { type: "SET_MESSAGES"; payload: ChatMessage[] }
   | { type: "SET_LOADING"; payload: boolean }
   | { type: "SET_ERROR"; payload: string | null };
@@ -54,6 +59,15 @@ const chatReducer = (state: ChatState, action: Action): ChatState => {
         ...state,
         messages: [...state.messages, action.payload],
       };
+    case "UPDATE_MESSAGE": {
+      const { id, updatedMessage } = action.payload;
+      return {
+        ...state,
+        messages: state.messages.map((msg) =>
+          msg.id === id ? updatedMessage : msg,
+        ),
+      };
+    }
     case "SET_MESSAGES":
       return {
         ...state,
@@ -98,6 +112,50 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
       initializeChat();
     }
   }, [hasInitialized, isInitializing]);
+
+  // Add event listener for chat response updates
+  useEffect(() => {
+    const handleChatResponseReady = (
+      event: CustomEvent<SendMessageResponse>,
+    ) => {
+      const finalResponse = event.detail;
+
+      // Find and update the pending message
+      const pendingMessage = state.messages.find(
+        (msg) =>
+          msg.role === "assistant" &&
+          (msg as SendMessageResponse).pending === true,
+      );
+
+      if (pendingMessage) {
+        const updatedMessage: ChatMessage = {
+          id: pendingMessage.id,
+          content: finalResponse.content,
+          role: "assistant",
+          createdAt: finalResponse.createdAt || new Date().toISOString(),
+        };
+
+        dispatch({
+          type: "UPDATE_MESSAGE",
+          payload: { id: pendingMessage.id, updatedMessage },
+        });
+      }
+    };
+
+    // Add event listener
+    window.addEventListener(
+      "chatResponseReady",
+      handleChatResponseReady as EventListener,
+    );
+
+    // Cleanup
+    return () => {
+      window.removeEventListener(
+        "chatResponseReady",
+        handleChatResponseReady as EventListener,
+      );
+    };
+  }, [state.messages]);
 
   const processInitialMessages = (
     messages: ChatMessageWithOptions[],
@@ -163,8 +221,10 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
       };
       dispatch({ type: "ADD_MESSAGE", payload: userMessage });
 
+      // Get pending response message
       const response = await sendMessage(messageContent);
 
+      // Add the pending message to the UI
       dispatch({ type: "ADD_MESSAGE", payload: response });
       dispatch({ type: "SET_ERROR", payload: null });
     } catch {
