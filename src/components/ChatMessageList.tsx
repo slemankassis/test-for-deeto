@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, KeyboardEvent } from "react";
+import React, { useRef, useState, KeyboardEvent } from "react";
 import { useChatContext } from "../context/ChatContext";
 import ChatBubble from "./ChatBubble";
 import { ChatMessage } from "../types/chatTypes";
@@ -9,24 +9,6 @@ const ChatMessageList: React.FC = () => {
   const [activeOption, setActiveOption] = useState<number | null>(null);
 
   const optionRefs = useRef<{ [key: string]: HTMLButtonElement[] }>({});
-
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-
-      // Announce new messages to screen readers when they arrive
-      if (state.messages.length > 0) {
-        const latestMessage = state.messages[state.messages.length - 1];
-        const sender = latestMessage.role === "user" ? "You" : chatbotName;
-        document
-          .getElementById("sr-live-region")
-          ?.setAttribute(
-            "aria-label",
-            `New message from ${sender}: ${latestMessage.content}`,
-          );
-      }
-    }
-  }, [state.messages, chatbotName]);
 
   const handleOptionClick = (option: string) => {
     console.log("Option clicked:", option);

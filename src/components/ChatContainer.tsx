@@ -14,7 +14,19 @@ const ChatContainer: React.FC = () => {
       // Ctrl+/ shortcut to focus on chat input
       if (e.ctrlKey && e.key === "/") {
         e.preventDefault();
-        chatInputRef.current?.focus();
+        if (chatInputRef.current) {
+          chatInputRef.current.focus();
+          
+          // Announce to screen readers
+          const announcer = document.getElementById('accessibility-announcer');
+          if (announcer) {
+            announcer.textContent = 'Chat input focused';
+            // Clear after a short delay
+            setTimeout(() => {
+              announcer.textContent = '';
+            }, 1500);
+          }
+        }
       }
     };
 
@@ -92,7 +104,7 @@ const ChatContainer: React.FC = () => {
       <a
         ref={skipLinkRef}
         href="#chat-input"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-10 focus:p-2 focus:bg-blue-600 focus:text-white focus:left-0 focus:top-0"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-10 focus:p-2 focus:bg-blue-600 focus:text-white focus:left-0 focus:top-0 focus:outline-none focus:ring-2 focus:ring-white"
         onFocus={() => {
           // Make the link visible when focused
           if (skipLinkRef.current) {
@@ -100,6 +112,12 @@ const ChatContainer: React.FC = () => {
             skipLinkRef.current.style.width = "auto";
             skipLinkRef.current.style.height = "auto";
             skipLinkRef.current.style.overflow = "visible";
+            
+            // Announce to screen readers
+            const announcer = document.getElementById('accessibility-announcer');
+            if (announcer) {
+              announcer.textContent = 'Skip link focused. Press Enter to go to chat input.';
+            }
           }
         }}
         onBlur={() => {
@@ -109,6 +127,19 @@ const ChatContainer: React.FC = () => {
             skipLinkRef.current.style.width = "";
             skipLinkRef.current.style.height = "";
             skipLinkRef.current.style.overflow = "";
+          }
+        }}
+        onClick={(e) => {
+          // Ensure the chat input gets focused after clicking the skip link
+          e.preventDefault();
+          if (chatInputRef.current) {
+            chatInputRef.current.focus();
+            
+            // Announce to screen readers
+            const announcer = document.getElementById('accessibility-announcer');
+            if (announcer) {
+              announcer.textContent = 'Skipped to chat input';
+            }
           }
         }}
       >

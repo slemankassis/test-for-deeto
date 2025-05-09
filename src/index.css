@@ -39,3 +39,53 @@ code {
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+/* Accessibility utility classes */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Focus styles for keyboard navigation */
+:focus-visible {
+  outline: 3px solid #007bff;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: more) {
+  :root {
+    --high-contrast-outline: 2px solid #000;
+    --high-contrast-focus: 3px solid #0066cc;
+  }
+  
+  a, button, input, select, textarea {
+    outline: var(--high-contrast-outline);
+  }
+  
+  a:focus, button:focus, input:focus, select:focus, textarea:focus {
+    outline: var(--high-contrast-focus);
+  }
+  
+  .focus-visible {
+    outline: var(--high-contrast-focus);
+  }
+}
+
+/* Ensure text scales properly without breaking layouts */
+html {
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+}
