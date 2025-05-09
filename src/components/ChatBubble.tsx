@@ -11,26 +11,6 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
   const { styles } = state.settings;
 
   const isUser = message.role === "user";
-  const bubbleStyle = {
-    backgroundColor: isUser
-      ? "#e9ecef"
-      : styles?.["--background-color"] || "#f8f9fa",
-    color: styles?.["--color"] || "#212529",
-    borderRadius: styles?.["--border-radius"] || "1rem",
-    boxShadow: styles?.["--box-shadow"] || "0 1px 2px rgba(0, 0, 0, 0.1)",
-    padding: "0.75rem 1rem",
-    maxWidth: "75%",
-    wordBreak: "break-word" as const,
-    marginBottom: "0.5rem",
-    alignSelf: isUser ? "flex-end" : "flex-start",
-  };
-
-  const timestampStyle = {
-    fontSize: "0.75rem",
-    color: "#6c757d",
-    marginTop: "0.25rem",
-    textAlign: isUser ? ("right" as const) : ("left" as const),
-  };
 
   const formatTimestamp = (timestamp: string) => {
     try {
@@ -45,11 +25,25 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
-      <div style={bubbleStyle}>
+    <div className="flex flex-col w-full">
+      <div
+        className={`p-3 max-w-3/4 break-words mb-2 ${isUser ? "self-end" : "self-start"}`}
+        style={{
+          backgroundColor: isUser
+            ? "#e9ecef"
+            : styles?.["--background-color"] || "#f8f9fa",
+          color: styles?.["--color"] || "#212529",
+          borderRadius: styles?.["--border-radius"] || "1rem",
+          boxShadow: styles?.["--box-shadow"] || "0 1px 2px rgba(0, 0, 0, 0.1)",
+        }}
+      >
         <div>{message.content}</div>
       </div>
-      <div style={timestampStyle}>{formatTimestamp(message.createdAt)}</div>
+      <div
+        className={`text-xs text-gray-500 mt-1 ${isUser ? "text-right" : "text-left"}`}
+      >
+        {formatTimestamp(message.createdAt)}
+      </div>
     </div>
   );
 };

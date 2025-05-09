@@ -7,40 +7,24 @@ const ChatContainer: React.FC = () => {
   const { state, initializeChat, chatbotName } = useChatContext();
   const { styles } = state.settings;
 
-  const containerStyle = {
-    display: "flex",
-    flexDirection: "column" as const,
-    height: "100vh",
-    maxWidth: "800px",
-    margin: "0 auto",
-    backgroundColor: "#ffffff",
-    color: styles?.["--color"] || "#212529",
-    boxShadow: styles?.["--box-shadow"] || "0 0 10px rgba(0, 0, 0, 0.1)",
-    borderRadius: styles?.["--border-radius"] || "0px",
-  };
-
   if (state.error) {
     return (
-      <div style={containerStyle}>
-        <div
-          style={{
-            padding: "2rem",
-            textAlign: "center",
-            color: "#dc3545",
-          }}
-        >
-          <h3>Error</h3>
-          <p>{state.error}</p>
+      <div
+        className="flex flex-col h-screen max-w-3xl mx-auto bg-white rounded-lg shadow-md"
+        style={{
+          color: styles?.["--color"] || "#212529",
+          boxShadow: styles?.["--box-shadow"] || "0 0 10px rgba(0, 0, 0, 0.1)",
+          borderRadius: styles?.["--border-radius"] || "0px",
+        }}
+      >
+        <div className="p-8 text-center text-red-600">
+          <h3 className="text-xl font-semibold">Error</h3>
+          <p className="my-2">{state.error}</p>
           <button
             onClick={() => initializeChat()}
+            className="mt-4 px-4 py-2 text-white border-none rounded cursor-pointer"
             style={{
               backgroundColor: styles?.["--background-color"] || "#007bff",
-              color: "#fff",
-              border: "none",
-              borderRadius: "0.25rem",
-              padding: "0.5rem 1rem",
-              marginTop: "1rem",
-              cursor: "pointer",
             }}
           >
             Try Again
@@ -52,13 +36,15 @@ const ChatContainer: React.FC = () => {
 
   if (state.isLoading && state.messages.length === 0) {
     return (
-      <div style={containerStyle}>
-        <div
-          style={{
-            padding: "2rem",
-            textAlign: "center",
-          }}
-        >
+      <div
+        className="flex flex-col h-screen max-w-3xl mx-auto bg-white rounded-lg shadow-md"
+        style={{
+          color: styles?.["--color"] || "#212529",
+          boxShadow: styles?.["--box-shadow"] || "0 0 10px rgba(0, 0, 0, 0.1)",
+          borderRadius: styles?.["--border-radius"] || "0px",
+        }}
+      >
+        <div className="p-8 text-center">
           <p>Loading chat...</p>
         </div>
       </div>
@@ -66,24 +52,28 @@ const ChatContainer: React.FC = () => {
   }
 
   return (
-    <div style={containerStyle}>
+    <div
+      className="flex flex-col h-screen max-w-3xl mx-auto bg-white rounded-lg shadow-md"
+      style={{
+        color: styles?.["--color"] || "#212529",
+        boxShadow: styles?.["--box-shadow"] || "0 0 10px rgba(0, 0, 0, 0.1)",
+        borderRadius: styles?.["--border-radius"] || "0px",
+      }}
+    >
       <header
+        className="p-4 text-center text-white border-b border-gray-200"
         style={{
-          padding: "1rem",
           backgroundColor: styles?.["--background-color"] || "#007bff",
-          color: "#fff",
-          textAlign: "center",
-          borderBottom: "1px solid #dee2e6",
         }}
       >
-        <h2 style={{ margin: 0 }}>{chatbotName}</h2>
+        <h2 className="m-0">{chatbotName}</h2>
         {state.settings.contactUrl && (
-          <div style={{ marginTop: "0.5rem", fontSize: "0.8rem" }}>
+          <div className="mt-2 text-sm">
             <a
               href={state.settings.contactUrl}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: "#fff", textDecoration: "underline" }}
+              className="text-white underline"
             >
               Contact Us
             </a>

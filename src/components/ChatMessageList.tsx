@@ -4,7 +4,7 @@ import ChatBubble from "./ChatBubble";
 import { ChatMessage } from "../types/chatTypes";
 
 const ChatMessageList: React.FC = () => {
-  const { state, sendChatMessage } = useChatContext();
+  const { state, chatbotName, sendChatMessage } = useChatContext();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -13,17 +13,8 @@ const ChatMessageList: React.FC = () => {
     }
   }, [state.messages]);
 
-  const containerStyle = {
-    display: "flex",
-    flexDirection: "column" as const,
-    gap: "1rem",
-    padding: "1rem",
-    overflowY: "auto" as const,
-    height: "calc(100vh - 150px)",
-    backgroundColor: "#ffffff",
-  };
-
   const handleOptionClick = (option: string) => {
+    console.log("Option clicked:", option);
     sendChatMessage(option);
   };
 
@@ -46,31 +37,20 @@ const ChatMessageList: React.FC = () => {
       originalMessage.options,
     );
 
-    const optionContainerStyle = {
-      display: "flex",
-      flexDirection: "column" as const,
-      gap: "0.5rem",
-      marginTop: "0.5rem",
-    };
-
-    const optionButtonStyle = {
-      padding: "0.5rem 1rem",
-      backgroundColor: state.settings.styles["--background-color"] || "#007bff",
-      color: "#fff",
-      border: "none",
-      borderRadius: state.settings.styles["--border-radius"] || "0.5rem",
-      boxShadow: state.settings.styles["--box-shadow"],
-      cursor: "pointer",
-      textAlign: "left" as const,
-    };
-
     return (
-      <div style={optionContainerStyle}>
+      <div className="flex flex-col gap-2 mt-2">
         {originalMessage.options.map((option, i) => (
           <button
             key={i}
             onClick={() => handleOptionClick(option)}
-            style={optionButtonStyle}
+            className="px-4 py-2 text-white text-left cursor-pointer"
+            style={{
+              backgroundColor:
+                state.settings.styles["--background-color"] || "#007bff",
+              borderRadius:
+                state.settings.styles["--border-radius"] || "0.5rem",
+              boxShadow: state.settings.styles["--box-shadow"],
+            }}
           >
             {option}
           </button>
@@ -80,15 +60,9 @@ const ChatMessageList: React.FC = () => {
   };
 
   return (
-    <div style={containerStyle}>
+    <div className="flex flex-col gap-4 p-4 overflow-y-auto h-[calc(100vh-150px)] bg-white">
       {state.messages.length === 0 ? (
-        <div
-          style={{
-            textAlign: "center",
-            marginTop: "2rem",
-            color: "#6c757d",
-          }}
-        >
+        <div className="text-center mt-8 text-gray-500">
           No messages yet. Start the conversation!
         </div>
       ) : (

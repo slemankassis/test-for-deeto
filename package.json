@@ -1,5 +1,5 @@
 {
-  "name": "transaction-frontend",
+  "name": "test-for-deeto",
   "version": "1.0.0",
   "scripts": {
     "dev": "vite",

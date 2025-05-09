@@ -14,39 +14,8 @@ const ChatInput: React.FC = () => {
     setMessage("");
   };
 
-  const containerStyle = {
-    display: "flex",
-    padding: "1rem",
-    borderTop: "1px solid #e9ecef",
-    backgroundColor: "#ffffff",
-  };
-
-  const inputStyle = {
-    flex: 1,
-    padding: "0.75rem 1rem",
-    borderRadius: "1.5rem",
-    border: "1px solid #ced4da",
-    marginRight: "0.5rem",
-    fontSize: "1rem",
-    color: styles?.["--color"] || "#212529",
-    backgroundColor: "#fff",
-  };
-
-  const buttonStyle = {
-    padding: "0.75rem 1.5rem",
-    backgroundColor: styles?.["--background-color"] || "#007bff",
-    color: "#fff",
-    border: "none",
-    borderRadius: styles?.["--border-radius"] || "1.5rem",
-    boxShadow: styles?.["--box-shadow"],
-    fontWeight: "bold" as const,
-    cursor: state.isLoading ? "not-allowed" : "pointer",
-    opacity: state.isLoading ? 0.7 : 1,
-    transition: "all 0.2s",
-  };
-
   return (
-    <form onSubmit={handleSubmit} style={containerStyle}>
+    <form onSubmit={handleSubmit} className="flex p-4 border-t border-gray-200">
       <input
         type="text"
         value={message}
@@ -54,10 +23,22 @@ const ChatInput: React.FC = () => {
         placeholder={
           state.settings["placeholder-text"] || "Type your message..."
         }
-        style={inputStyle}
+        className="flex-1 px-4 py-3 mr-2 border border-gray-300 rounded-full focus:outline-none"
+        style={{
+          color: styles?.["--color"] || "#212529",
+        }}
         disabled={state.isLoading}
       />
-      <button type="submit" style={buttonStyle} disabled={state.isLoading}>
+      <button
+        type="submit"
+        className="px-6 py-3 text-white font-semibold rounded-full"
+        style={{
+          backgroundColor: styles?.["--background-color"] || "#007bff",
+          opacity: state.isLoading ? 0.7 : 1,
+          cursor: state.isLoading ? "not-allowed" : "pointer",
+        }}
+        disabled={state.isLoading}
+      >
         {state.isLoading ? "Sending..." : "Send"}
       </button>
     </form>
